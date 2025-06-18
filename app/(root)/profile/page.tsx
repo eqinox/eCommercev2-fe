@@ -1,7 +1,13 @@
 'use client';
 
 import { useAuth } from '@/contexts/auth-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -30,15 +36,15 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Email</h3>
-              <p className="mt-1">{user.email}</p>
+              <p className="mt-1">{user.user.email}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">Role</h3>
-              <p className="mt-1">{user.role}</p>
+              <p className="mt-1">{user.user.role}</p>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-} 
+}

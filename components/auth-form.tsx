@@ -6,11 +6,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
-import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '@/lib/validations/auth';
+import {
+  loginSchema,
+  registerSchema,
+  type LoginFormData,
+  type RegisterFormData,
+} from '@/lib/validations/auth';
 
 interface AuthFormProps {
   isRegister?: boolean;
@@ -91,7 +103,9 @@ export default function AuthForm({ isRegister = false }: AuthFormProps) {
                 type="password"
               />
               {(errors as any).confirmPassword && (
-                <p className="text-sm text-red-500">{(errors as any).confirmPassword.message}</p>
+                <p className="text-sm text-red-500">
+                  {(errors as any).confirmPassword.message}
+                </p>
               )}
             </div>
           )}
@@ -102,9 +116,9 @@ export default function AuthForm({ isRegister = false }: AuthFormProps) {
       </CardContent>
       <CardFooter>
         <div className="text-sm text-muted-foreground text-center w-full">
-          {isRegister ? "Already have an account? " : "Don't have an account? "}
+          {isRegister ? 'Already have an account? ' : "Don't have an account? "}
           <Link
-            href={isRegister ? "/login" : "/register"}
+            href={isRegister ? '/login' : '/register'}
             className="text-primary hover:underline"
           >
             {isRegister ? 'Login' : 'Register'}
@@ -113,4 +127,4 @@ export default function AuthForm({ isRegister = false }: AuthFormProps) {
       </CardFooter>
     </Card>
   );
-} 
+}

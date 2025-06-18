@@ -4,15 +4,17 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { LoginFormData, RegisterFormData } from '@/lib/validations/auth';
+import { saveSession, getSession, clearSession } from '@/lib/session';
 
 interface User {
   id: string;
   email: string;
   role: string;
+  name: string;
 }
 
 interface AuthContextType {
-  user: {access_token: string, user: User} | null;
+  user: { access_token: string; user: User } | null;
   login: (data: LoginFormData) => Promise<void>;
   register: (data: RegisterFormData) => Promise<void>;
   logout: () => Promise<void>;
@@ -22,7 +24,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{access_token: string, user: User} | null>(null);
+  const [user, setUser] = useState<{ access_token: string; user: User } | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -32,10 +36,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      // First check session storage
+      const sessionUser = getSession();
+      if (sessionUser) {
+        setUser({ access_token: '', user: sessionUser }); // We don't store access token in session for security
+        setIsLoading(false);
+        return;
+      }
+
+      // If no session, try to get current user from API
       const user = await authApi.getCurrentUser();
       setUser(user);
+      if (user?.user) {
+        saveSession(user.user);
+      }
     } catch (error) {
       setUser(null);
+      clearSession();
     } finally {
       setIsLoading(false);
     }
@@ -44,8 +61,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (data: LoginFormData) => {
     try {
       const user = await authApi.login(data);
-      console.log('user', user)
       setUser(user);
+      if (user?.user) {
+        saveSession(user.user);
+      }
       router.push('/');
     } catch (error) {
       throw error;
@@ -65,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.logout();
       setUser(null);
-      router.push('/login');
+      clearSession();
     } catch (error) {
       throw error;
     }
@@ -84,4 +103,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

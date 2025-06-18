@@ -11,19 +11,27 @@ const api = axios.create({
 
 export const authApi = {
   login: async (data: LoginFormData) => {
-    const response = await api.post('/auth/login', data);
+    const response = await api.post('/auth/signin', data);
     return response.data;
   },
   register: async (data: RegisterFormData) => {
-    const response = await api.post('/auth/register', data);
+    const { confirmPassword, ...payload } = data;
+    const response = await api.post('/auth/signup', payload);
     return response.data;
   },
   logout: async () => {
-    const response = await api.post('/auth/logout');
-    return response.data;
+    const token = localStorage.getItem('access_token');
+    // const response = await api.post('/auth/logout', {}, {
+    //   headers: {
+    //     Authorization: `Bearer ${token}`,
+    //   },
+    // });
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    // return response.data;
   },
   getCurrentUser: async () => {
     const response = await api.get('/auth/me');
     return response.data;
   },
-}; 
+};

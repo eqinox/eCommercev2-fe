@@ -9,16 +9,27 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from './ui/button';
+import { UserIcon } from 'lucide-react';
 
-export function UserMenu() {
+export function UserButton() {
   const { user, logout } = useAuth();
   const router = useRouter();
-    console.log('user', user)
-  if (!user) return null;
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase();
   };
+
+  if (!user) {
+    return (
+      <Link href="/login">
+        <Button>
+          <UserIcon /> Login
+        </Button>
+      </Link>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -31,10 +42,13 @@ export function UserMenu() {
         <DropdownMenuItem onClick={() => router.push('/profile')}>
           Profile
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => logout()}>
-          Logout
-        </DropdownMenuItem>
+        {user.user.role === 'admin' && (
+          <DropdownMenuItem onClick={() => router.push('/admin')}>
+            Admin Dashboard
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={() => logout()}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}
