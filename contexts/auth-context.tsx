@@ -1,20 +1,19 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import { LoginFormData, RegisterFormData } from '@/lib/validations/auth';
-import { saveSession, getSession, clearSession } from '@/lib/session';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  name: string;
-}
+import { authApi } from '@/lib/api';
 
 interface AuthContextType {
-  user: { access_token: string; user: User } | null;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    accessToken?: string;
+  } | null;
   login: (data: LoginFormData) => Promise<void>;
   register: (data: RegisterFormData) => Promise<void>;
   logout: () => Promise<void>;
@@ -24,48 +23,22 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{ access_token: string; user: User } | null>(
-    null,
-  );
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      // First check session storage
-      const sessionUser = getSession();
-      if (sessionUser) {
-        setUser({ access_token: '', user: sessionUser }); // We don't store access token in session for security
-        setIsLoading(false);
-        return;
-      }
-
-      // If no session, try to get current user from API
-      const user = await authApi.getCurrentUser();
-      setUser(user);
-      if (user?.user) {
-        saveSession(user.user);
-      }
-    } catch (error) {
-      setUser(null);
-      clearSession();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: session, status } = useSession();
 
   const login = async (data: LoginFormData) => {
     try {
-      const user = await authApi.login(data);
-      setUser(user);
-      if (user?.user) {
-        saveSession(user.user);
+      const result = await signIn('credentials', {
+        ...data,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
       }
+
       router.push('/');
+      router.refresh();
     } catch (error) {
       throw error;
     }
@@ -82,16 +55,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await authApi.logout();
-      setUser(null);
-      clearSession();
+      await signOut({ redirect: false });
+      router.push('/login');
+      router.refresh();
     } catch (error) {
       throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        user: session?.user ?? null,
+        login,
+        register,
+        logout,
+        isLoading: status === 'loading',
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

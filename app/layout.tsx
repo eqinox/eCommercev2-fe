@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider } from 'next-themes';
+import { SessionProvider } from 'next-auth/react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,10 +27,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
+          <SessionProvider>
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>
